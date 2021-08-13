@@ -18,85 +18,78 @@ namespace AdditionalRecontainment.Commands
     [CommandHandler(typeof(ClientCommandHandler))]
     class MTFRequest : ICommand
     {
-        public string Command { get; } = "request";
-
+        public string Command { get; } = "mtfchop";
         public string[] Aliases { get; } = { };
-
-        public string Description { get; } = "request mtf helicopter";
-        private List<Player> AliveMTF = new List<Player>();
-        private List<Player> AliveSCP = new List<Player>();
-        private Player ScpTarget;
-        sbyte count=2;
+        public string Description { get; } = "Вызов эвакуационного вертолёта МОГ";
+        private List<Player> AlivePlayer = new List<Player>();
+        sbyte ChopperCapacity = 10;
         Vector3 mtfposition = new Vector3(163, 990, -52);
         Vector3 mtfposition2 = new Vector3(193,995,-68);
+        Vector3 midpos = new Vector3(178, 992.5f, -60);
+        TimeSpan time = Round.ElapsedTime;
 
+        public void Evacuate(List<Player> ReadyToEvacuate, Dictionary<RoleType, sbyte> PlayerWeight, ref sbyte ChopperCapacity)
+        {
+            Log.Info("Начало первого цикла");
+            for(int role = 0; role < Plugin.PluginItem.Config.RoleTypeArray.GetLength(0); role++)
+            {
+                Log.Info("Итерация " + role+1 + " цикла номер один");
+                foreach (Player ply in ReadyToEvacuate.Where(x => x.Role == (RoleType)Plugin.PluginItem.Config.RoleTypeArray[role,0] && x.IsCuffed == Convert.ToBoolean(Plugin.PluginItem.Config.RoleTypeArray[role,1])))
+                {
+                    Log.Info(ply.DisplayNickname);
+                    if (Plugin.PluginItem.Config.PlayerWeight[ply.Role] > ChopperCapacity) break;
+                    Log.Info("Проверка вертолёта успешно");
+                    ChopperCapacity -= Plugin.PluginItem.Config.PlayerWeight[ply.Role];
+                    Log.Info("Удаление игрока из списка эвакуации");
+                    ReadyToEvacuate.Remove(ply);
+                    Log.Info("Изменение на спектатора");
+                    ply.SetRole(RoleType.Spectator);
+                }
+                if (ChopperCapacity == 0)
+                {
+                    Log.Info("Капасити 0");
+                    break; }
+            }
+        }
         public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
             Player player_requester = Player.Get((sender as CommandSender)?.SenderId);
             if (!player_requester.IsHuman)
             {
-                player_requester.Broadcast(5, "Вы не человек");
+                player_requester.ShowHint("<i>Вы не человек</i>",5 );
                 response = "Вы не человек";
-                return false;
+                return true;
             }
             if (!player_requester.IsNTF)
             {
-                player_requester.Broadcast(5, "Вы не член отряда мтф");
-                response = "Вы не член отряда мтф";
+                player_requester.ShowHint("<i>Вы не член отряда МОГ</i>",5);
+                response = "Вы не член отряда МОГ";
                 return true;
             }
-            if (!(player_requester.Position.x > mtfposition.x && player_requester.Position.x < mtfposition2.x
-                && player_requester.Position.y > mtfposition.y && player_requester.Position.y < mtfposition2.y
-                && player_requester.Position.z < mtfposition.z && player_requester.Position.z > mtfposition2.z))
+            //if (player_requester.Zone == ZoneType.Surface)
+            //{
+            //    player_requester.ShowHint("[Нет сигнала]", 5);
+            //    response = "Нет сигнала";
+            //    return true;
+            //}
+            if (Warhead.IsInProgress && Warhead.DetonationTimer < 36)
             {
-                player_requester.Broadcast(5, "Вы не на вертолётной площадке");
-                response = "failed";
+                //TODO: Передать группу вызывающего
+                player_requester.ShowHint("\"Говорит Пилот Эпсилон-11. Вылет невозможен, буду в зоне поражения Альфа-боеголовки\"", 5);
+                response = "В эвакуации отказано";
                 return true;
             }
-            AliveMTF = Player.Get(Team.MTF).ToList();
-            AliveSCP = Player.Get(Team.SCP).ToList();
-            foreach (Player scp in AliveSCP.Where(x => x.Role == RoleType.Scp0492 || x.Role == RoleType.Scp079))
-                AliveSCP.Remove(scp);
-            foreach (Player scp in AliveSCP.Where(x => Vector3.Distance(player_requester.Position, x.Position) <= Plugin.PluginItem.Config.Distance))
-            {
-                ScpTarget = scp;
-                break;
-            }
-            if (ScpTarget == null)
-            {
-                player_requester.Broadcast(5, "С вами нет объекта");
-                response = "С вами нет объекта";
-                return true;
-            }
-            Log.Info("Ждем");
-            for (int i = 0; i <= 2; i++)
-            {
-                Thread.Sleep(10000);
-                foreach (Player ply in AliveMTF.Where(x => Vector3.Distance(ScpTarget.Position, x.Position) > Plugin.PluginItem.Config.Distance))
-                    count++;
-                if (count < Plugin.PluginItem.Config.PersonCount)
-                {
-                    foreach (Player ply in AliveMTF.Where(x => Vector3.Distance(ScpTarget.Position, x.Position) < Plugin.PluginItem.Config.Distance))
-                        ply.Broadcast(5, "Слишком мало людей для эвакуации объекта");
-                    ScpTarget = null;
-                    player_requester = null;
-                    response = "Слишком мало людей для эвакуации объекта";
-                    return true;
-                }
-                else
-                {
-                    foreach (Player ply in AliveMTF.Where(x => Vector3.Distance(ScpTarget.Position, x.Position) < Plugin.PluginItem.Config.Distance))
-                        ply.Broadcast(5, "Пока все успешно");
-                }
-            }
+            player_requester.ShowHint("\"Говорит Пилот Эпсилон-11. Буду на месте через 30 секунд\"", 5);
+            Thread.Sleep(12000);
             Respawn.PlayEffect(RespawnEffectType.SummonNtfChopper);
-            Log.Info("Ждем вертолёт");
             Thread.Sleep(18000);
-            ScpTarget.Role = RoleType.Spectator;
-            Cassie.GlitchyMessage("scp containment successfully g a y", 10, 10);
-            response = "Объект успешно эвакуирован";
-            ScpTarget = null;
-            player_requester = null;
+            List<Player> ReadyToEvac = AlivePlayer.Where(x => Vector3.Distance(x.Position, midpos) <= Plugin.PluginItem.Config.Distance).ToList();
+            if (Warhead.IsInProgress)
+                Evacuate(ReadyToEvac, Plugin.PluginItem.Config.PlayerWeight, ref ChopperCapacity);
+            else
+                Evacuate(ReadyToEvac.Where(x => x.Team != Team.MTF || (x.Team == Team.MTF && x.IsCuffed)).ToList(), Plugin.PluginItem.Config.PlayerWeight,ref ChopperCapacity);
+
+            response = "Эвакуация прошла успешно";
             return true;
         }
     }
