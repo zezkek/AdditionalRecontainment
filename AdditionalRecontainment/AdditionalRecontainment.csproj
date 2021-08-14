@@ -83,9 +83,9 @@
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\CHIRequest.cs" />
     <Compile Include="Commands\MTFRequest.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="Handlers.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
