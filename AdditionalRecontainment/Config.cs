@@ -13,31 +13,22 @@ namespace AdditionalRecontainment
         public bool IsEnabled { get; set; } = true;
         [Description("Max distance between SCP and player while containming")]
         public float Distance { get; set; } = 10f;
-        [Description("Min amount of players to contain SCP")]
-        public sbyte PersonCount { get; set; } = 2;
-        [Description("Time to wait for transport(will be x3)")]
+
+        [Description("Ignored roles")]
         public List<RoleType> Roles { get; set; } = new List<RoleType> { RoleType.Scp079, RoleType.Scp106 };
-        [Description("Priority of every RoleType")]
-        public int[,] RoleTypeArray = new int[,]{{(int)RoleType.Scp173,0 }, {(int)RoleType.Scp049,0 }, {(int)RoleType.Scp096,0 },
-            {(int)RoleType.Scientist,0 }, {(int)RoleType.NtfCommander,0 }, {(int)RoleType.NtfScientist,0 },{(int)RoleType.NtfLieutenant,0 },{(int)RoleType.NtfCadet,0 },
-            {(int)RoleType.Scientist,1 }, {(int)RoleType.NtfCommander,1 }, {(int)RoleType.NtfScientist,1 },{(int)RoleType.NtfLieutenant,1 },{(int)RoleType.NtfCadet,1 },
-            {(int)RoleType.ChaosInsurgency,1 },{(int)RoleType.ClassD,1 },{(int)RoleType.Scp93989,1 }, {(int)RoleType.Scp93953,1 }, {(int)RoleType.Scp0492,1 } };
-        [Description("Weight of every RoleType")]
-        public Dictionary<RoleType, sbyte> PlayerWeight = new Dictionary<RoleType, sbyte>
-        {
-            {RoleType.Scp173, 3 },
-            {RoleType.Scp049, 2 },
-            {RoleType.Scp0492, 1 },
-            {RoleType.Scp096, 3},
-            {RoleType.Scp93953, 3 },
-            {RoleType.Scp93989, 3 },
-            {RoleType.Scientist, 1 },
-            {RoleType.NtfCommander, 1 },
-            {RoleType.NtfScientist, 1 },
-            {RoleType.NtfLieutenant, 1 },
-            {RoleType.NtfCadet, 1 },
-            {RoleType.ChaosInsurgency, 1 },
-            {RoleType.ClassD, 1 }
-        };
+        [Description("Cassie after scp evacuation")]
+        public string ScpEvacuate { get; set; } = "{scpnumber} Evacuate Successfully";
+        [Description("Items that mtf can evacuate")]
+        public List<ItemType> MTFEvacItems { get; set; } = new List<ItemType> { 
+            ItemType.KeycardChaosInsurgency, ItemType.KeycardContainmentEngineer,
+            ItemType.KeycardFacilityManager, ItemType.KeycardNTFCommander,
+            ItemType.KeycardO5, ItemType.MicroHID,
+            ItemType.SCP018, ItemType.SCP207,
+            ItemType.SCP207, ItemType.SCP500 };
+        [Description("Items that chaos can evacuate")]
+        public List<int> ChaosEvacItems { get; set; } = new List<int> { (int)ItemType.KeycardFacilityManager, (int)ItemType.KeycardO5,
+            (int)ItemType.SCP018, (int)ItemType.SCP207, 
+            (int)ItemType.SCP268, (int)ItemType.SCP500, 
+            (int)ItemType.MicroHID };
     }
 }
