@@ -10,18 +10,21 @@ using UnityEngine;
 namespace AdditionalRecontainment.Commands
 {
     [CommandHandler(typeof(ClientCommandHandler))]
-    class MTFRequest : ICommand
+    class CHIRequest:ICommand
     {
-        public string Command { get; } = "mtfchop";
+        public string Command { get; } = "chicar";
         public string[] Aliases { get; } = { };
-        public string Description { get; } = "Вызов эвакуационного вертолёта МОГ";
-        Vector3 MTFPoint = new Vector3(178, 992.5f, -60);
+        public string Description { get; } = "Вызов грузовика CHI";
+        Vector3 CHIPoint = new Vector3(5, 988.5f, -58);
         bool OnEvacuateCooldown = false;
         bool OnSupportCooldown = false;
-        public int[,] RoleTypeArray = new int[,]{{(int)RoleType.Scp173,0 }, {(int)RoleType.Scp049,0 }, {(int)RoleType.Scp096,0 },
-            {(int)RoleType.Scientist,0 }, {(int)RoleType.NtfCommander,0 }, {(int)RoleType.NtfScientist,0 },{(int)RoleType.NtfLieutenant,0 },{(int)RoleType.NtfCadet,0 },
-            {(int)RoleType.Scientist,1 }, {(int)RoleType.NtfCommander,1 }, {(int)RoleType.NtfScientist,1 },{(int)RoleType.NtfLieutenant,1 },{(int)RoleType.NtfCadet,1 },
-            {(int)RoleType.ChaosInsurgency,1 },{(int)RoleType.ClassD,1 },{(int)RoleType.Scp93989,1 }, {(int)RoleType.Scp93953,1 }, {(int)RoleType.Scp0492,1 } };
+        public int[,] RoleTypeArray = new int[,]{{(int)RoleType.Scp173,0 }, {(int)RoleType.Scp049,0 },
+            {(int)RoleType.Scp096,0 },{(int)RoleType.ChaosInsurgency,0 },
+            {(int)RoleType.Scientist,1 }, {(int)RoleType.NtfCommander,1 },
+            {(int)RoleType.NtfScientist,1 },{(int)RoleType.NtfLieutenant,1 },
+            {(int)RoleType.NtfCadet,1 },{(int)RoleType.ClassD,0 },
+            {(int)RoleType.Scp93989,0 }, {(int)RoleType.Scp93953,0 },
+            {(int)RoleType.Scp0492,0 } };
         public Dictionary<RoleType, sbyte> PlayerWeight = new Dictionary<RoleType, sbyte>
         {
             {RoleType.Scp173, 3 },
@@ -41,44 +44,43 @@ namespace AdditionalRecontainment.Commands
 
         public void Evacuate(List<Player> ReadyToEvacuate, Dictionary<RoleType, sbyte> PlayerWeight)
         {
-            sbyte ChopperCapacity = 10;
-            List<Pickup> ItemsToEvac = Pickup.Instances.Where(x => Vector3.Distance(x.position, MTFPoint) <= Plugin.PluginItem.Config.Distance && Plugin.PluginItem.Config.MTFEvacItems.Contains(x.ItemId)).ToList();
+            sbyte CarCapacity = 10;
+            List<Pickup> ItemsToEvac = Pickup.Instances.Where(x => Vector3.Distance(x.position, CHIPoint) <= Plugin.PluginItem.Config.Distance && Plugin.PluginItem.Config.CHIEvacItems.Contains(x.ItemId)).ToList();
             foreach (var Item in ItemsToEvac)
                 Item.Delete();
             for (int role = 0; role < RoleTypeArray.GetLength(0); role++)
             {
                 foreach (Player ply in ReadyToEvacuate.Where(x => x.Role == (RoleType)RoleTypeArray[role, 0] && x.IsCuffed == Convert.ToBoolean(RoleTypeArray[role, 1])))
                 {
-                    if (PlayerWeight[ply.Role] > ChopperCapacity)
+                    if (PlayerWeight[ply.Role] > CarCapacity)
                     {
-                        if(ply.Team == Team.MTF)
+                        if (ply.Team == Team.CHI)
                             ply.ShowHint("\"Говорит Пилот Эпсилон-11. Погрузка окончена. Улетаем\"\n<i>Вам не хватило места</i>");
                         else
                             ply.ShowHint("<i>Вам не хватило места</i>");
                         continue;
-                        //huita.
                     }
-                    ChopperCapacity -= PlayerWeight[ply.Role];
-                    if(ply.Team==Team.SCP)
+                    CarCapacity -= PlayerWeight[ply.Role];
+                    if (ply.Team == Team.SCP)
                         switch (ply.Role)
                         {
                             case RoleType.Scp049:
-                                Cassie.Message(Plugin.PluginItem.Config.ScpEvacuate.Replace("{scpnumber}", "scp 0 4 9"));
+                                Cassie.Message(Plugin.PluginItem.Config.ScpSteal.Replace("{scpnumber}", "scp 0 4 9"));
                                 break;
                             case RoleType.Scp096:
-                                Cassie.Message(Plugin.PluginItem.Config.ScpEvacuate.Replace("{scpnumber}", "scp 0 9 6"));
+                                Cassie.Message(Plugin.PluginItem.Config.ScpSteal.Replace("{scpnumber}", "scp 0 9 6"));
                                 break;
                             case RoleType.Scp173:
-                                Cassie.Message(Plugin.PluginItem.Config.ScpEvacuate.Replace("{scpnumber}", "scp 1 7 3"));
+                                Cassie.Message(Plugin.PluginItem.Config.ScpSteal.Replace("{scpnumber}", "scp 1 7 3"));
                                 break;
                             case RoleType.Scp93953:
-                                Cassie.Message(Plugin.PluginItem.Config.ScpEvacuate.Replace("{scpnumber}", "scp 9 3 9"));
+                                Cassie.Message(Plugin.PluginItem.Config.ScpSteal.Replace("{scpnumber}", "scp 9 3 9"));
                                 break;
                             case RoleType.Scp93989:
-                                Cassie.Message(Plugin.PluginItem.Config.ScpEvacuate.Replace("{scpnumber}", "scp 9 3 9"));
+                                Cassie.Message(Plugin.PluginItem.Config.ScpSteal.Replace("{scpnumber}", "scp 9 3 9"));
                                 break;
                         }
-                    if (ply.Team == Team.MTF)
+                    if (ply.Team == Team.CHI)
                         ply.ShowHint("\"Говорит Пилот Эпсилон-11. Погрузка окончена. Улетаем\"\n<i>Вы успешно эвакуировались из Комплекса</i>");
                     else
                         ply.ShowHint("<i>Вы успешно эвакуировались из Комплекса</i>");
@@ -91,13 +93,13 @@ namespace AdditionalRecontainment.Commands
         {
             Timing.RunCoroutine(CooldownEvacuate());
             yield return Timing.WaitForSeconds(12f);
-            Respawn.PlayEffect(RespawnEffectType.SummonNtfChopper);
-            yield return Timing.WaitForSeconds(18f);
-            List<Player> ReadyToEvac = Player.List.Where(x => Vector3.Distance(x.Position, MTFPoint) <= Plugin.PluginItem.Config.Distance).ToList();
+            Respawn.PlayEffect(RespawnEffectType.SummonChaosInsurgencyVan);
+            yield return Timing.WaitForSeconds(13f);
+            List<Player> ReadyToEvac = Player.List.Where(x => Vector3.Distance(x.Position, CHIPoint) <= Plugin.PluginItem.Config.Distance).ToList();
             if (Warhead.IsInProgress)
                 Evacuate(ReadyToEvac, PlayerWeight);
             else
-                Evacuate(ReadyToEvac.Where(x => x.Team != Team.MTF || (x.Team == Team.MTF && x.IsCuffed)).ToList(), PlayerWeight);
+                Evacuate(ReadyToEvac.Where(x => x.Team != Team.CHI || (x.Team == Team.CHI && x.IsCuffed)).ToList(), PlayerWeight);
         }
         private IEnumerator<float> WaitForSupport()
         {
@@ -132,7 +134,7 @@ namespace AdditionalRecontainment.Commands
             Player player_requester = Player.Get((sender as CommandSender)?.SenderId);
             if (arguments.Count != 1)
             {
-                response = "Аргументы: \n .mtfchop evac - эвакуация объектов, людей и предметов \n.mtfchop support - вызов подкрепления";
+                response = "Аргументы: \n .chicar evac - эвакуация объектов, людей и предметов \n.chicar support - вызов подкрепления";
                 return false;
             }
             if (!player_requester.IsHuman)
@@ -141,16 +143,10 @@ namespace AdditionalRecontainment.Commands
                 response = "Вы не человек";
                 return true;
             }
-            if (!player_requester.IsNTF)
+            if (player_requester.Team != Team.CHI)
             {
-                player_requester.ShowHint("<i>Вы не член отряда МОГ</i>", 5);
-                response = "Вы не член отряда МОГ";
-                return true;
-            }
-            if ((int)player_requester.CurrentItem.id != 12)
-            {
-                player_requester.ShowHint("<i>Нужно достать рацию</i>", 5);
-                response = "Нужно достать рацию";
+                player_requester.ShowHint("<i>Вы не агент Хаос инсерженси</i>", 5);
+                response = "Вы не агент Хаос инсерженси";
                 return true;
             }
             if (player_requester.Position.y <= 900)
@@ -165,6 +161,7 @@ namespace AdditionalRecontainment.Commands
                 {
                     if (OnEvacuateCooldown)
                     {
+                        player_requester.ShowHint("<i>Перезарядка</i>", 5);
                         response = "Перезарядка";
                         return true;
                     }
@@ -188,11 +185,11 @@ namespace AdditionalRecontainment.Commands
                         return true;
                     }
                     Timing.RunCoroutine(WaitForSupport());
-                    response = "\"Говорит Пилот Эпсилон-11. Буду на месте через {time} секунд\"".Replace("{time}",Plugin.PluginItem.Config.WaitForSupport.ToString());
+                    response = "\"Говорит Пилот Эпсилон-11. Буду на месте через {time} секунд\"".Replace("{time}", Plugin.PluginItem.Config.WaitForSupport.ToString());
                     return true;
                 }
             }
-            response = "Аргументы: \n .mtfchop evac - эвакуация объектов, людей и предметов \n.mtfchop support - вызов подкрепления";
+            response = "Аргументы: \n .chicar evac - эвакуация объектов, людей и предметов \n.chicar support - вызов подкрепления";
             return false;
         }
     }
