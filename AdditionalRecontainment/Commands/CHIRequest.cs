@@ -17,6 +17,7 @@ namespace AdditionalRecontainment.Commands
         public string Description { get; } = "Вызов грузовика CHI";
         Vector3 CHIPoint = new Vector3(5, 988.5f, -58);
         bool OnEvacuateCooldown = false;
+        bool OnSupportCooldown = false;
         public int[,] RoleTypeArray = new int[,]{{(int)RoleType.Scp173,0 }, {(int)RoleType.Scp049,0 },
             {(int)RoleType.Scp096,0 },{(int)RoleType.ChaosInsurgency,0 },
             {(int)RoleType.Scientist,1 }, {(int)RoleType.NtfCommander,1 },
@@ -90,7 +91,7 @@ namespace AdditionalRecontainment.Commands
         }
         private IEnumerator<float> WaitingRoom()
         {
-            Timing.RunCoroutine(Cooldown());
+            Timing.RunCoroutine(CooldownEvacuate());
             yield return Timing.WaitForSeconds(12f);
             Respawn.PlayEffect(RespawnEffectType.SummonChaosInsurgencyVan);
             yield return Timing.WaitForSeconds(13f);
@@ -100,9 +101,15 @@ namespace AdditionalRecontainment.Commands
             else
                 Evacuate(ReadyToEvac.Where(x => x.Team != Team.CHI || (x.Team == Team.CHI && x.IsCuffed)).ToList(), PlayerWeight);
         }
-        private IEnumerator<float> Cooldown()
+        private IEnumerator<float> WaitForSupport()
         {
-            int Cooldown = Plugin.PluginItem.Config.Cooldown;
+            Timing.RunCoroutine(CooldownSupport());
+            yield return Timing.WaitForSeconds(Plugin.PluginItem.Config.WaitForSupport);
+            Respawn.ForceWave(Respawning.SpawnableTeamType.NineTailedFox, true);
+        }
+        private IEnumerator<float> CooldownEvacuate()
+        {
+            int Cooldown = Plugin.PluginItem.Config.CooldownEv;
             while (Cooldown > 0)
             {
                 Cooldown--;
@@ -110,6 +117,17 @@ namespace AdditionalRecontainment.Commands
                 yield return Timing.WaitForSeconds(1f);
             }
             OnEvacuateCooldown = false;
+        }
+        private IEnumerator<float> CooldownSupport()
+        {
+            int Cooldown = Plugin.PluginItem.Config.CooldownSup;
+            while (Cooldown > 0)
+            {
+                Cooldown--;
+                OnSupportCooldown = true;
+                yield return Timing.WaitForSeconds(1f);
+            }
+            OnSupportCooldown = false;
         }
         public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
@@ -161,7 +179,14 @@ namespace AdditionalRecontainment.Commands
                 }
                 if (args[1].ToLower().Equals("support"))
                 {
-                    //support script
+                    if (OnSupportCooldown)
+                    {
+                        response = "Перезарядка";
+                        return true;
+                    }
+                    Timing.RunCoroutine(WaitForSupport());
+                    response = "\"Говорит Пилот Эпсилон-11. Буду на месте через {time} секунд\"".Replace("{time}", Plugin.PluginItem.Config.WaitForSupport.ToString());
+                    return true;
                 }
             }
             response = "Аргументы: \n .chicar evac - эвакуация объектов, людей и предметов \n.chicar support - вызов подкрепления";

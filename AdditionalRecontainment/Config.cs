@@ -11,8 +11,12 @@ namespace AdditionalRecontainment
     public class Config:IConfig
     {
         public bool IsEnabled { get; set; } = true;
-        [Description("Cooldown of comands")]
-        public int Cooldown { get; set; } = 20;
+        [Description("Cooldown of evacuation")]
+        public int CooldownEv{ get; set; } = 20;
+        [Description("Cooldown of support")]
+        public int CooldownSup { get; set; } = 20;
+        [Description("Time to wait for support")]
+        public float WaitForSupport { get; set; } = 30;
         [Description("Max distance between SCP and player while containming")]
         public float Distance { get; set; } = 10f;
 
