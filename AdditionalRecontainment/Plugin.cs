@@ -14,7 +14,7 @@ namespace AdditionalRecontainment
     {
         public override string Name { get; } = "AdditionalRecontainment";
         public override string Author { get; } = ".fkn_goose & Mydak";
-        public override Version Version => new Version(0, 5, 0);
+        public override Version Version => new Version(1, 1, 2);
         public static readonly Lazy<Plugin> LazyInstance = new Lazy<Plugin>(valueFactory: () => new Plugin());
         public static Plugin PluginItem => LazyInstance.Value;
     }
