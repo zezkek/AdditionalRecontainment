@@ -103,7 +103,9 @@ namespace AdditionalRecontainment.Commands
         {
             Timing.RunCoroutine(CooldownSupport());
             yield return Timing.WaitForSeconds(Plugin.PluginItem.Config.WaitForSupport);
-            Respawn.ForceWave(Respawning.SpawnableTeamType.NineTailedFox, true);
+            Respawn.PlayEffect(RespawnEffectType.SummonNtfChopper);
+            yield return Timing.WaitForSeconds(18f);
+            Respawn.ForceWave(Respawning.SpawnableTeamType.NineTailedFox, false);
         }
         private IEnumerator<float> CooldownEvacuate()
         {

@@ -55,7 +55,7 @@ namespace AdditionalRecontainment.Commands
                     if (PlayerWeight[ply.Role] > CarCapacity)
                     {
                         if (ply.Team == Team.CHI)
-                            ply.ShowHint("\"Говорит Пилот Эпсилон-11. Погрузка окончена. Улетаем\"\n<i>Вам не хватило места</i>");
+                            ply.ShowHint("\"Места нет, валим отсюда\"\n<i>Вам не хватило места</i>");
                         else
                             ply.ShowHint("<i>Вам не хватило места</i>");
                         continue;
@@ -81,7 +81,7 @@ namespace AdditionalRecontainment.Commands
                                 break;
                         }
                     if (ply.Team == Team.CHI)
-                        ply.ShowHint("\"Говорит Пилот Эпсилон-11. Погрузка окончена. Улетаем\"\n<i>Вы успешно эвакуировались из Комплекса</i>");
+                        ply.ShowHint("\"Погрузка окончена, валим отсюда\"\n<i>Вы успешно эвакуировались из Комплекса</i>");
                     else
                         ply.ShowHint("<i>Вы успешно эвакуировались из Комплекса</i>");
                     ply.Inventory.Clear();
@@ -105,7 +105,9 @@ namespace AdditionalRecontainment.Commands
         {
             Timing.RunCoroutine(CooldownSupport());
             yield return Timing.WaitForSeconds(Plugin.PluginItem.Config.WaitForSupport);
-            Respawn.ForceWave(Respawning.SpawnableTeamType.NineTailedFox, true);
+            Respawn.PlayEffect(RespawnEffectType.SummonChaosInsurgencyVan);
+            yield return Timing.WaitForSeconds(13f);
+            Respawn.ForceWave(Respawning.SpawnableTeamType.ChaosInsurgency, false);
         }
         private IEnumerator<float> CooldownEvacuate()
         {
@@ -168,13 +170,13 @@ namespace AdditionalRecontainment.Commands
                     if (Warhead.IsInProgress && Warhead.DetonationTimer < 36)
                     {
                         //TODO: Передать группу вызывающего
-                        player_requester.ShowHint("\"Говорит Пилот Эпсилон-11. Вылет невозможен, буду в зоне поражения Альфа-боеголовки\"", 5);
-                        response = "Говорит Пилот Эпсилон-11. Вылет невозможен, буду в зоне поражения Альфа-боеголовки";
+                        player_requester.ShowHint("\"Замечена активация боеголовки, эвакуация невозможна\"", 5);
+                        response = "Замечена активация боеголовки, эвакуация невозможна";
                         return true;
                     }
-                    player_requester.ShowHint("\"Говорит Пилот Эпсилон-11. Буду на месте через 30 секунд\"", 5);
+                    player_requester.ShowHint("\"Прибытие к точке эвакуации через 30 секунд, держитесь\"", 5);
                     Timing.RunCoroutine(WaitingRoom());
-                    response = "\"Говорит Пилот Эпсилон-11. Буду на месте через 30 секунд\"";
+                    response = "\"Прибытие к точке эвакуации через 30 секунд, держитесь\"";
                     return true;
                 }
                 if (args[1].ToLower().Equals("support"))
@@ -185,7 +187,7 @@ namespace AdditionalRecontainment.Commands
                         return true;
                     }
                     Timing.RunCoroutine(WaitForSupport());
-                    response = "\"Говорит Пилот Эпсилон-11. Буду на месте через {time} секунд\"".Replace("{time}", Plugin.PluginItem.Config.WaitForSupport.ToString());
+                    response = "\"Прибытие к точке эвакуации через {time} секунд, держитесь\"".Replace("{time}", Plugin.PluginItem.Config.WaitForSupport.ToString());
                     return true;
                 }
             }
