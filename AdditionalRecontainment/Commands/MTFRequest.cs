@@ -194,7 +194,7 @@ namespace AdditionalRecontainment.Commands
                     return true;
                 }
             }
-            response = "Аргументы: \n .mtfchop evac - эвакуация объектов, людей и предметов \n.mtfchop support - вызов подкрепления";
+            response = "\nАргументы: \n.mtfchop evac - эвакуация объектов, людей и предметов \n.mtfchop support - вызов подкрепления";
             return false;
         }
     }
