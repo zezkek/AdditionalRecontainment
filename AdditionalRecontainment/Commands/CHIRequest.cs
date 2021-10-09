@@ -1,6 +1,7 @@
 ﻿using CommandSystem;
 using Exiled.API.Enums;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
 using MEC;
 using System;
 using System.Collections.Generic;
@@ -19,10 +20,11 @@ namespace AdditionalRecontainment.Commands
         bool OnEvacuateCooldown = false;
         bool OnSupportCooldown = false;
         public int[,] RoleTypeArray = new int[,]{{(int)RoleType.Scp173,0 }, {(int)RoleType.Scp049,0 },
-            {(int)RoleType.Scp096,0 },{(int)RoleType.ChaosInsurgency,0 },
-            {(int)RoleType.Scientist,1 }, {(int)RoleType.NtfCommander,1 },
-            {(int)RoleType.NtfScientist,1 },{(int)RoleType.NtfLieutenant,1 },
-            {(int)RoleType.NtfCadet,1 },{(int)RoleType.ClassD,0 },
+            {(int)RoleType.Scp096,0 },{(int)RoleType.ChaosMarauder, 1 },
+            {(int)RoleType.ChaosRepressor, 1 },{(int)RoleType.ChaosRifleman, 1 },{(int)RoleType.ChaosConscript, 1 },
+            {(int)RoleType.ClassD, 1 },{(int)RoleType.Scientist,1 }, {(int)RoleType.NtfCaptain,1 },
+            {(int)RoleType.NtfSpecialist,1 },{(int)RoleType.NtfSergeant,1 },
+            {(int)RoleType.NtfPrivate,1 },{(int)RoleType.ClassD,0 },
             {(int)RoleType.Scp93989,0 }, {(int)RoleType.Scp93953,0 },
             {(int)RoleType.Scp0492,0 } };
         public Dictionary<RoleType, sbyte> PlayerWeight = new Dictionary<RoleType, sbyte>
@@ -34,20 +36,23 @@ namespace AdditionalRecontainment.Commands
             {RoleType.Scp93953, 3 },
             {RoleType.Scp93989, 3 },
             {RoleType.Scientist, 1 },
-            {RoleType.NtfCommander, 1 },
-            {RoleType.NtfScientist, 1 },
-            {RoleType.NtfLieutenant, 1 },
-            {RoleType.NtfCadet, 1 },
-            {RoleType.ChaosInsurgency, 1 },
+            {RoleType.NtfCaptain, 1 },
+            {RoleType.NtfSpecialist, 1 },
+            {RoleType.NtfSergeant, 1 },
+            {RoleType.NtfPrivate, 1 },
+            {RoleType.ChaosMarauder, 1 },
+            {RoleType.ChaosRepressor, 1 },
+            {RoleType.ChaosRifleman, 1 },
+            {RoleType.ChaosConscript, 1 },
             {RoleType.ClassD, 1 }
         };
 
         public void Evacuate(List<Player> ReadyToEvacuate, Dictionary<RoleType, sbyte> PlayerWeight)
         {
             sbyte CarCapacity = 10;
-            List<Pickup> ItemsToEvac = Pickup.Instances.Where(x => Vector3.Distance(x.position, CHIPoint) <= Plugin.PluginItem.Config.Distance && Plugin.PluginItem.Config.CHIEvacItems.Contains(x.ItemId)).ToList();
+            List<Pickup> ItemsToEvac = Map.Pickups.ToList().Where(x => Vector3.Distance(x.Position, CHIPoint) <= Plugin.PluginItem.Config.Distance && Plugin.PluginItem.Config.CHIEvacItems.Contains(x.Type)).ToList();
             foreach (var Item in ItemsToEvac)
-                Item.Delete();
+                Item.Destroy();
             for (int role = 0; role < RoleTypeArray.GetLength(0); role++)
             {
                 foreach (Player ply in ReadyToEvacuate.Where(x => x.Role == (RoleType)RoleTypeArray[role, 0] && x.IsCuffed == Convert.ToBoolean(RoleTypeArray[role, 1])))
@@ -84,7 +89,7 @@ namespace AdditionalRecontainment.Commands
                         ply.ShowHint("\"Погрузка окончена, валим отсюда\"\n<i>Вы успешно эвакуировались из Комплекса</i>");
                     else
                         ply.ShowHint("<i>Вы успешно эвакуировались из Комплекса</i>");
-                    ply.Inventory.Clear();
+                    ply.ClearInventory();
                     ply.SetRole(RoleType.Spectator);
                 }
             }

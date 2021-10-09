@@ -1,6 +1,7 @@
 ﻿using CommandSystem;
 using Exiled.API.Enums;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
 using MEC;
 using System;
 using System.Collections.Generic;
@@ -19,9 +20,10 @@ namespace AdditionalRecontainment.Commands
         bool OnEvacuateCooldown = false;
         bool OnSupportCooldown = false;
         public int[,] RoleTypeArray = new int[,]{{(int)RoleType.Scp173,0 }, {(int)RoleType.Scp049,0 }, {(int)RoleType.Scp096,0 },
-            {(int)RoleType.Scientist,0 }, {(int)RoleType.NtfCommander,0 }, {(int)RoleType.NtfScientist,0 },{(int)RoleType.NtfLieutenant,0 },{(int)RoleType.NtfCadet,0 },
-            {(int)RoleType.Scientist,1 }, {(int)RoleType.NtfCommander,1 }, {(int)RoleType.NtfScientist,1 },{(int)RoleType.NtfLieutenant,1 },{(int)RoleType.NtfCadet,1 },
-            {(int)RoleType.ChaosInsurgency,1 },{(int)RoleType.ClassD,1 },{(int)RoleType.Scp93989,1 }, {(int)RoleType.Scp93953,1 }, {(int)RoleType.Scp0492,1 } };
+            {(int)RoleType.Scientist,0 }, {(int)RoleType.NtfCaptain,0 }, {(int)RoleType.NtfSpecialist,0 },{(int)RoleType.NtfSergeant,0 },{(int)RoleType.NtfPrivate,0 },
+            {(int)RoleType.Scientist,1 }, {(int)RoleType.NtfCaptain,1 }, {(int)RoleType.NtfSpecialist,1 },{(int)RoleType.NtfSergeant,1 },{(int)RoleType.NtfPrivate,1 },
+            {(int)RoleType.ChaosMarauder, 1 },{(int)RoleType.ChaosRepressor, 1 },{(int)RoleType.ChaosRifleman, 1 },
+            {(int)RoleType.ChaosConscript, 1 },{(int)RoleType.ClassD,1 },{(int)RoleType.Scp93989,1 }, {(int)RoleType.Scp93953,1 }, {(int)RoleType.Scp0492,1 } };
         public Dictionary<RoleType, sbyte> PlayerWeight = new Dictionary<RoleType, sbyte>
         {
             {RoleType.Scp173, 3 },
@@ -31,20 +33,23 @@ namespace AdditionalRecontainment.Commands
             {RoleType.Scp93953, 3 },
             {RoleType.Scp93989, 3 },
             {RoleType.Scientist, 1 },
-            {RoleType.NtfCommander, 1 },
-            {RoleType.NtfScientist, 1 },
-            {RoleType.NtfLieutenant, 1 },
-            {RoleType.NtfCadet, 1 },
-            {RoleType.ChaosInsurgency, 1 },
+            {RoleType.NtfCaptain, 1 },
+            {RoleType.NtfSpecialist, 1 },
+            {RoleType.NtfSergeant, 1 },
+            {RoleType.NtfPrivate, 1 },
+            {RoleType.ChaosMarauder, 1 },
+            {RoleType.ChaosRepressor, 1 },
+            {RoleType.ChaosRifleman, 1 },
+            {RoleType.ChaosConscript, 1 },
             {RoleType.ClassD, 1 }
         };
 
         public void Evacuate(List<Player> ReadyToEvacuate, Dictionary<RoleType, sbyte> PlayerWeight)
         {
             sbyte ChopperCapacity = 10;
-            List<Pickup> ItemsToEvac = Pickup.Instances.Where(x => Vector3.Distance(x.position, MTFPoint) <= Plugin.PluginItem.Config.Distance && Plugin.PluginItem.Config.MTFEvacItems.Contains(x.ItemId)).ToList();
+            List<Pickup> ItemsToEvac = Map.Pickups.ToList().Where(x => Vector3.Distance(x.Position, MTFPoint) <= Plugin.PluginItem.Config.Distance && Plugin.PluginItem.Config.MTFEvacItems.Contains(x.Type)).ToList();
             foreach (var Item in ItemsToEvac)
-                Item.Delete();
+                Item.Destroy();
             for (int role = 0; role < RoleTypeArray.GetLength(0); role++)
             {
                 foreach (Player ply in ReadyToEvacuate.Where(x => x.Role == (RoleType)RoleTypeArray[role, 0] && x.IsCuffed == Convert.ToBoolean(RoleTypeArray[role, 1])))
@@ -82,7 +87,7 @@ namespace AdditionalRecontainment.Commands
                         ply.ShowHint("\"Говорит Пилот Эпсилон-11. Погрузка окончена. Улетаем\"\n<i>Вы успешно эвакуировались из Комплекса</i>");
                     else
                         ply.ShowHint("<i>Вы успешно эвакуировались из Комплекса</i>");
-                    ply.Inventory.Clear();
+                    ply.ClearInventory();
                     ply.SetRole(RoleType.Spectator);
                 }
             }
@@ -149,7 +154,7 @@ namespace AdditionalRecontainment.Commands
                 response = "Вы не член отряда МОГ";
                 return true;
             }
-            if ((int)player_requester.CurrentItem.id != 12)
+            if (player_requester.CurrentItem.Type != ItemType.Radio)
             {
                 player_requester.ShowHint("<i>Нужно достать рацию</i>", 5);
                 response = "Нужно достать рацию";
